@@ -25,6 +25,8 @@ builder.Services.AddScoped<IAttendanceAdjustmentService, AttendanceAdjustmentSer
 builder.Services.AddScoped<ISalaryStructureRepository, SalaryStructureRepository>();
 builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
 builder.Services.AddScoped<IPayrollCalculationService, PayrollCalculationService>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
