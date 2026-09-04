@@ -20,6 +20,9 @@ builder.Services.AddScoped<IPositionService, PositionService>();
 builder.Services.AddScoped<IPositionSalaryRepository, PositionSalaryRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<ISalaryStructureRepository, SalaryStructureRepository>();
+builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+builder.Services.AddScoped<IPayrollCalculationService, PayrollCalculationService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
