@@ -20,23 +20,17 @@ public class EmployeeService : IEmployeeService
         return employees.Select(ToDto);
     }
 
-    public async Task<EmployeeDto?> GetByIdAsync(long id)
+    public async Task<EmployeeDto?> GetByCodeAsync(string employeeCode)
     {
-        var employee = await _employeeRepository.GetByIdAsync(id);
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode);
         return employee is null ? null : ToDto(employee);
     }
 
     public async Task<EmployeeDto> CreateAsync(CreateEmployeeRequest request)
     {
-        var existing = await _employeeRepository.GetByEmployeeCodeAsync(request.EmployeeCode);
-        if (existing is not null)
-        {
-            throw new InvalidOperationException($"Employee code '{request.EmployeeCode}' already exists.");
-        }
-
         var employee = new Employee
         {
-            EmployeeCode = request.EmployeeCode,
+            EmployeeCode = await GenerateUniqueEmployeeCodeAsync(),
             FirstName = request.FirstName,
             LastName = request.LastName,
             DepartmentId = request.DepartmentId,
@@ -50,13 +44,34 @@ public class EmployeeService : IEmployeeService
         await _employeeRepository.AddAsync(employee);
         await _employeeRepository.SaveChangesAsync();
 
+        // employee.Id được EF Core tự gán sau SaveChangesAsync() — chỉ dùng nội bộ để refetch kèm navigation, không lộ ra ngoài API.
         var created = await _employeeRepository.GetByIdAsync(employee.Id);
         return ToDto(created!);
     }
 
+    private const string CodeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private const int CodeLength = 8;
+
+    private async Task<string> GenerateUniqueEmployeeCodeAsync()
+    {
+        string code;
+        do
+        {
+            code = string.Create(CodeLength, Random.Shared, (span, random) =>
+            {
+                for (var i = 0; i < span.Length; i++)
+                {
+                    span[i] = CodeAlphabet[random.Next(CodeAlphabet.Length)];
+                }
+            });
+        }
+        while (await _employeeRepository.GetByEmployeeCodeAsync(code) is not null);
+
+        return code;
+    }
+
     private static EmployeeDto ToDto(Employee employee) => new()
     {
-        Id = employee.Id,
         EmployeeCode = employee.EmployeeCode,
         FullName = $"{employee.FirstName} {employee.LastName}",
         DepartmentName = employee.Department.DepartmentName,

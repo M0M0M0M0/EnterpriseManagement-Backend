@@ -22,24 +22,17 @@ public class EmployeesController : ControllerBase
         return Ok(employees);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<EmployeeDto>> GetById(long id)
+    [HttpGet("{employeeCode}")]
+    public async Task<ActionResult<EmployeeDto>> GetByCode(string employeeCode)
     {
-        var employee = await _employeeService.GetByIdAsync(id);
+        var employee = await _employeeService.GetByCodeAsync(employeeCode);
         return employee is null ? NotFound() : Ok(employee);
     }
 
     [HttpPost]
     public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeRequest request)
     {
-        try
-        {
-            var created = await _employeeService.CreateAsync(request);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var created = await _employeeService.CreateAsync(request);
+        return CreatedAtAction(nameof(GetByCode), new { employeeCode = created.EmployeeCode }, created);
     }
 }

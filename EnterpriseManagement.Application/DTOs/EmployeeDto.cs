@@ -2,7 +2,6 @@ namespace EnterpriseManagement.Application.DTOs;
 
 public class EmployeeDto
 {
-    public long Id { get; set; }
     public string EmployeeCode { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string DepartmentName { get; set; } = string.Empty;
