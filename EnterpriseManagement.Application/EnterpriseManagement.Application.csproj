@@ -12,4 +12,8 @@
     <Folder Include="Services\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EnterpriseManagement.Domain\EnterpriseManagement.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
