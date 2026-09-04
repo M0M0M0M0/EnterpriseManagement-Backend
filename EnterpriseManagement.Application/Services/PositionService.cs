@@ -7,10 +7,12 @@ namespace EnterpriseManagement.Application.Services;
 public class PositionService : IPositionService
 {
     private readonly IPositionRepository _positionRepository;
+    private readonly IPositionSalaryRepository _positionSalaryRepository;
 
-    public PositionService(IPositionRepository positionRepository)
+    public PositionService(IPositionRepository positionRepository, IPositionSalaryRepository positionSalaryRepository)
     {
         _positionRepository = positionRepository;
+        _positionSalaryRepository = positionSalaryRepository;
     }
 
     public async Task<IEnumerable<PositionDto>> GetAllAsync()
@@ -48,11 +50,40 @@ public class PositionService : IPositionService
         return ToDto(position);
     }
 
+    public async Task<PositionDto> SetStandardSalaryAsync(string positionCode, decimal standardSalary)
+    {
+        var position = await _positionRepository.GetByCodeAsync(positionCode)
+            ?? throw new InvalidOperationException($"Position code '{positionCode}' not found.");
+
+        var salary = await _positionSalaryRepository.GetByPositionIdAsync(position.Id);
+        if (salary is null)
+        {
+            salary = new PositionSalary
+            {
+                PositionId = position.Id,
+                StandardSalary = standardSalary,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _positionSalaryRepository.AddAsync(salary);
+        }
+        else
+        {
+            salary.StandardSalary = standardSalary;
+            salary.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _positionSalaryRepository.SaveChangesAsync();
+
+        var updated = await _positionRepository.GetByCodeAsync(positionCode);
+        return ToDto(updated!);
+    }
+
     private static PositionDto ToDto(Position position) => new()
     {
         PositionCode = position.PositionCode,
         PositionName = position.PositionName,
         Description = position.Description,
-        IsActive = position.IsActive
+        IsActive = position.IsActive,
+        StandardSalary = position.Salary?.StandardSalary
     };
 }

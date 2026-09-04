@@ -29,6 +29,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Position> Positions => Set<Position>();
     public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<PositionSalary> PositionSalaries => Set<PositionSalary>();
 
     // Attendance
     public DbSet<WorkShift> WorkShifts => Set<WorkShift>();

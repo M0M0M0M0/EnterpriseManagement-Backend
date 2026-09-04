@@ -42,4 +42,18 @@ public class PositionsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPut("{positionCode}/salary")]
+    public async Task<ActionResult<PositionDto>> SetStandardSalary(string positionCode, SetStandardSalaryRequest request)
+    {
+        try
+        {
+            var updated = await _positionService.SetStandardSalaryAsync(positionCode, request.StandardSalary);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }

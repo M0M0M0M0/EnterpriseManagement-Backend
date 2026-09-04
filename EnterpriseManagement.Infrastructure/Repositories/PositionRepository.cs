@@ -15,10 +15,14 @@ public class PositionRepository : IPositionRepository
     }
 
     public async Task<Position?> GetByCodeAsync(string positionCode) =>
-        await _context.Positions.FirstOrDefaultAsync(p => p.PositionCode == positionCode);
+        await _context.Positions
+            .Include(p => p.Salary)
+            .FirstOrDefaultAsync(p => p.PositionCode == positionCode);
 
     public async Task<IEnumerable<Position>> GetAllAsync() =>
-        await _context.Positions.ToListAsync();
+        await _context.Positions
+            .Include(p => p.Salary)
+            .ToListAsync();
 
     public async Task AddAsync(Position position) =>
         await _context.Positions.AddAsync(position);

@@ -16,5 +16,10 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
         builder.Property(x => x.Description).HasMaxLength(500);
 
         builder.HasIndex(x => x.PositionCode).IsUnique();
+
+        builder.HasOne(x => x.Salary)
+            .WithOne(x => x.Position)
+            .HasForeignKey<PositionSalary>(x => x.PositionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
