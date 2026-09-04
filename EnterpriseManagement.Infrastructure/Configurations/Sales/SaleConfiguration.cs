@@ -27,5 +27,10 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             .WithMany()
             .HasForeignKey(x => x.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Approver)
+            .WithMany()
+            .HasForeignKey(x => x.ApprovedBy)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

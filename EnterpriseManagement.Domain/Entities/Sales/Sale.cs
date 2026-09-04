@@ -19,6 +19,10 @@ public class Sale
     public SaleStatus Status { get; set; }
     public string? Note { get; set; }
 
+    public long? ApprovedBy { get; set; }
+    public Employee? Approver { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
