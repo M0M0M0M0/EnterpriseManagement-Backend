@@ -1,3 +1,4 @@
+using EnterpriseManagement.Application.Common;
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
 using EnterpriseManagement.Domain.Enums;
@@ -34,7 +35,7 @@ public class PayrollCalculationService : IPayrollCalculationService
         var periodStart = new DateOnly(year, month, 1);
         var periodEnd = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
 
-        var standardWorkingDays = CountWeekdays(periodStart, periodEnd);
+        var standardWorkingDays = DateRangeHelper.CountWeekdays(periodStart, periodEnd);
 
         // Ngày bị trừ lương = ngày trong tuần (Thứ 2-6) có Attendance Absent, hợp nhất với ngày nghỉ không lương
         // đã duyệt, để tránh đếm trùng nếu 1 ngày rơi vào cả 2 trường hợp.
@@ -43,7 +44,7 @@ public class PayrollCalculationService : IPayrollCalculationService
         var attendanceRecords = await _attendanceRepository.GetByEmployeeAndPeriodAsync(employee.Id, periodStart, periodEnd);
         foreach (var record in attendanceRecords)
         {
-            if (record.Status == AttendanceStatus.Absent && IsWeekday(record.AttendanceDate))
+            if (record.Status == AttendanceStatus.Absent && DateRangeHelper.IsWeekday(record.AttendanceDate))
             {
                 deductedDates.Add(record.AttendanceDate);
             }
@@ -56,7 +57,7 @@ public class PayrollCalculationService : IPayrollCalculationService
             var overlapEnd = leave.EndDate < periodEnd ? leave.EndDate : periodEnd;
             for (var date = overlapStart; date <= overlapEnd; date = date.AddDays(1))
             {
-                if (IsWeekday(date))
+                if (DateRangeHelper.IsWeekday(date))
                 {
                     deductedDates.Add(date);
                 }
@@ -80,21 +81,4 @@ public class PayrollCalculationService : IPayrollCalculationService
             NetSalary = netSalary
         };
     }
-
-    private static int CountWeekdays(DateOnly start, DateOnly end)
-    {
-        var count = 0;
-        for (var date = start; date <= end; date = date.AddDays(1))
-        {
-            if (IsWeekday(date))
-            {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    private static bool IsWeekday(DateOnly date) =>
-        date.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday);
 }
