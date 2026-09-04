@@ -67,7 +67,7 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpPut("adjustments/{id}/approve")]
-    public async Task<ActionResult<AttendanceAdjustmentDto>> ApproveAdjustment(long id, ApproveAdjustmentRequest request)
+    public async Task<ActionResult<AttendanceAdjustmentDto>> ApproveAdjustment(long id, ApprovalRequest request)
     {
         try
         {
@@ -81,7 +81,7 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpPut("adjustments/{id}/reject")]
-    public async Task<ActionResult<AttendanceAdjustmentDto>> RejectAdjustment(long id, ApproveAdjustmentRequest request)
+    public async Task<ActionResult<AttendanceAdjustmentDto>> RejectAdjustment(long id, ApprovalRequest request)
     {
         try
         {

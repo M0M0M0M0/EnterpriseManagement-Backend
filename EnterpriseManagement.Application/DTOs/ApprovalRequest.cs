@@ -1,6 +1,6 @@
 namespace EnterpriseManagement.Application.DTOs;
 
-public class ApproveAdjustmentRequest
+public class ApprovalRequest
 {
     public string ApproverEmployeeCode { get; set; } = string.Empty;
 }
