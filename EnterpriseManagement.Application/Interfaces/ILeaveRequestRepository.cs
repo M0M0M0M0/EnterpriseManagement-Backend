@@ -6,4 +6,10 @@ public interface ILeaveRequestRepository
 {
     Task<IEnumerable<LeaveRequest>> GetApprovedUnpaidByEmployeeAndPeriodAsync(
         long employeeId, DateOnly periodStart, DateOnly periodEnd);
+
+    Task<LeaveRequest?> GetByIdAsync(long id);
+    Task<IEnumerable<LeaveRequest>> GetPendingAsync();
+    Task<IEnumerable<LeaveRequest>> GetAllAsync();
+    Task AddAsync(LeaveRequest leaveRequest);
+    Task<int> SaveChangesAsync();
 }

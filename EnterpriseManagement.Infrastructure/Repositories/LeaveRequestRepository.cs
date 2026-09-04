@@ -25,4 +25,31 @@ public class LeaveRequestRepository : ILeaveRequestRepository
                 && l.StartDate <= periodEnd
                 && l.EndDate >= periodStart)
             .ToListAsync();
+
+    public async Task<LeaveRequest?> GetByIdAsync(long id) =>
+        await _context.LeaveRequests
+            .Include(l => l.LeaveType)
+            .Include(l => l.Employee)
+            .FirstOrDefaultAsync(l => l.Id == id);
+
+    public async Task<IEnumerable<LeaveRequest>> GetPendingAsync() =>
+        await _context.LeaveRequests
+            .Include(l => l.LeaveType)
+            .Include(l => l.Employee)
+            .Where(l => l.Status == LeaveRequestStatus.Pending)
+            .ToListAsync();
+
+    public async Task<IEnumerable<LeaveRequest>> GetAllAsync() =>
+        await _context.LeaveRequests
+            .Include(l => l.LeaveType)
+            .Include(l => l.Employee)
+            .Include(l => l.Approver)
+            .OrderByDescending(l => l.CreatedAt)
+            .ToListAsync();
+
+    public async Task AddAsync(LeaveRequest leaveRequest) =>
+        await _context.LeaveRequests.AddAsync(leaveRequest);
+
+    public Task<int> SaveChangesAsync() =>
+        _context.SaveChangesAsync();
 }
