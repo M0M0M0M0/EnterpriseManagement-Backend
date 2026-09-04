@@ -9,10 +9,12 @@ namespace EnterpriseManagement.Api.Controllers;
 public class AttendanceController : ControllerBase
 {
     private readonly IAttendanceService _attendanceService;
+    private readonly IAttendanceAdjustmentService _attendanceAdjustmentService;
 
-    public AttendanceController(IAttendanceService attendanceService)
+    public AttendanceController(IAttendanceService attendanceService, IAttendanceAdjustmentService attendanceAdjustmentService)
     {
         _attendanceService = attendanceService;
+        _attendanceAdjustmentService = attendanceAdjustmentService;
     }
 
     [HttpPost("punch")]
@@ -40,6 +42,55 @@ public class AttendanceController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("adjustments")]
+    public async Task<ActionResult<AttendanceAdjustmentDto>> SubmitAdjustment(SubmitAdjustmentRequest request)
+    {
+        try
+        {
+            var result = await _attendanceAdjustmentService.SubmitAsync(request);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("adjustments/pending")]
+    public async Task<ActionResult<IEnumerable<AttendanceAdjustmentDto>>> GetPendingAdjustments()
+    {
+        var pending = await _attendanceAdjustmentService.GetPendingAsync();
+        return Ok(pending);
+    }
+
+    [HttpPut("adjustments/{id}/approve")]
+    public async Task<ActionResult<AttendanceAdjustmentDto>> ApproveAdjustment(long id, ApproveAdjustmentRequest request)
+    {
+        try
+        {
+            var result = await _attendanceAdjustmentService.ApproveAsync(id, request.ApproverEmployeeCode);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("adjustments/{id}/reject")]
+    public async Task<ActionResult<AttendanceAdjustmentDto>> RejectAdjustment(long id, ApproveAdjustmentRequest request)
+    {
+        try
+        {
+            var result = await _attendanceAdjustmentService.RejectAsync(id, request.ApproverEmployeeCode);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
     }
 }

@@ -44,7 +44,6 @@ public class EmployeeService : IEmployeeService
         await _employeeRepository.AddAsync(employee);
         await _employeeRepository.SaveChangesAsync();
 
-        // employee.Id được EF Core tự gán sau SaveChangesAsync() — chỉ dùng nội bộ để refetch kèm navigation, không lộ ra ngoài API.
         var created = await _employeeRepository.GetByIdAsync(employee.Id);
         return ToDto(created!);
     }
