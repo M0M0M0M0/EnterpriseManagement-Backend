@@ -43,6 +43,34 @@ public class PositionsController : ControllerBase
         }
     }
 
+    [HttpPut("{positionCode}")]
+    public async Task<ActionResult<PositionDto>> Update(string positionCode, UpdatePositionRequest request)
+    {
+        try
+        {
+            var updated = await _positionService.UpdateAsync(positionCode, request);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{positionCode}/active")]
+    public async Task<ActionResult<PositionDto>> SetActive(string positionCode, SetActiveRequest request)
+    {
+        try
+        {
+            var updated = await _positionService.SetActiveAsync(positionCode, request.IsActive);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
     [HttpPut("{positionCode}/salary")]
     public async Task<ActionResult<PositionDto>> SetStandardSalary(string positionCode, SetStandardSalaryRequest request)
     {

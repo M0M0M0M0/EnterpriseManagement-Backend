@@ -78,6 +78,34 @@ public class PositionService : IPositionService
         return ToDto(updated!);
     }
 
+    public async Task<PositionDto> UpdateAsync(string positionCode, UpdatePositionRequest request)
+    {
+        var position = await _positionRepository.GetByCodeAsync(positionCode)
+            ?? throw new InvalidOperationException($"Position code '{positionCode}' not found.");
+
+        position.PositionName = request.PositionName;
+        position.Description = request.Description;
+        position.UpdatedAt = DateTime.UtcNow;
+
+        await _positionRepository.SaveChangesAsync();
+
+        var updated = await _positionRepository.GetByCodeAsync(positionCode);
+        return ToDto(updated!);
+    }
+
+    public async Task<PositionDto> SetActiveAsync(string positionCode, bool isActive)
+    {
+        var position = await _positionRepository.GetByCodeAsync(positionCode)
+            ?? throw new InvalidOperationException($"Position code '{positionCode}' not found.");
+
+        position.IsActive = isActive;
+        position.UpdatedAt = DateTime.UtcNow;
+
+        await _positionRepository.SaveChangesAsync();
+
+        return ToDto(position);
+    }
+
     private static PositionDto ToDto(Position position) => new()
     {
         PositionCode = position.PositionCode,
