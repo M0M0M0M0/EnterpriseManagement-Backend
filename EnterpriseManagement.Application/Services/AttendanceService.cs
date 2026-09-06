@@ -10,11 +10,16 @@ public class AttendanceService : IAttendanceService
 {
     private readonly IAttendanceRepository _attendanceRepository;
     private readonly IEmployeeRepository _employeeRepository;
+    private readonly IDepartmentRepository _departmentRepository;
 
-    public AttendanceService(IAttendanceRepository attendanceRepository, IEmployeeRepository employeeRepository)
+    public AttendanceService(
+        IAttendanceRepository attendanceRepository,
+        IEmployeeRepository employeeRepository,
+        IDepartmentRepository departmentRepository)
     {
         _attendanceRepository = attendanceRepository;
         _employeeRepository = employeeRepository;
+        _departmentRepository = departmentRepository;
     }
 
     public async Task<AttendanceRecordDto> PunchAsync(PunchRequest request)
@@ -59,6 +64,15 @@ public class AttendanceService : IAttendanceService
 
         var records = await _attendanceRepository.GetByEmployeeAsync(employee.Id);
         return records.Select(r => ToDto(r, employee));
+    }
+
+    public async Task<IEnumerable<AttendanceRecordDto>> GetByDepartmentAsync(string departmentCode, DateOnly startDate, DateOnly endDate)
+    {
+        var department = await _departmentRepository.GetByCodeAsync(departmentCode)
+            ?? throw new InvalidOperationException($"Department code '{departmentCode}' not found.");
+
+        var records = await _attendanceRepository.GetByDepartmentAndPeriodAsync(department.Id, startDate, endDate);
+        return records.Select(r => ToDto(r, r.Employee));
     }
 
     private static AttendanceRecordDto ToDto(AttendanceRecord record, Employee employee) => new()

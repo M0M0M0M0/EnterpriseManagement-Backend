@@ -6,6 +6,7 @@ public interface IAttendanceAdjustmentService
 {
     Task<AttendanceAdjustmentDto> SubmitAsync(SubmitAdjustmentRequest request);
     Task<IEnumerable<AttendanceAdjustmentDto>> GetPendingAsync();
+    Task<IEnumerable<AttendanceAdjustmentDto>> GetByEmployeeAsync(string employeeCode);
     Task<AttendanceAdjustmentDto> ApproveAsync(long adjustmentId, string approverEmployeeCode);
     Task<AttendanceAdjustmentDto> RejectAsync(long adjustmentId, string approverEmployeeCode);
 }

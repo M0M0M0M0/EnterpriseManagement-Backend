@@ -45,6 +45,21 @@ public class AttendanceController : ControllerBase
         }
     }
 
+    [HttpGet("department/{departmentCode}")]
+    public async Task<ActionResult<IEnumerable<AttendanceRecordDto>>> GetByDepartment(
+        string departmentCode, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
+    {
+        try
+        {
+            var records = await _attendanceService.GetByDepartmentAsync(departmentCode, startDate, endDate);
+            return Ok(records);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("adjustments")]
     public async Task<ActionResult<AttendanceAdjustmentDto>> SubmitAdjustment(SubmitAdjustmentRequest request)
     {
@@ -52,6 +67,20 @@ public class AttendanceController : ControllerBase
         {
             var result = await _attendanceAdjustmentService.SubmitAsync(request);
             return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("adjustments/mine")]
+    public async Task<ActionResult<IEnumerable<AttendanceAdjustmentDto>>> GetMyAdjustments([FromQuery] string employeeCode)
+    {
+        try
+        {
+            var adjustments = await _attendanceAdjustmentService.GetByEmployeeAsync(employeeCode);
+            return Ok(adjustments);
         }
         catch (InvalidOperationException ex)
         {

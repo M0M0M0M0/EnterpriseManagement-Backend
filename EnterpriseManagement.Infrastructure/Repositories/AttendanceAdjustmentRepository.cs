@@ -28,6 +28,15 @@ public class AttendanceAdjustmentRepository : IAttendanceAdjustmentRepository
             .Where(a => a.Status == ApprovalStatus.Pending)
             .ToListAsync();
 
+    public async Task<IEnumerable<AttendanceAdjustment>> GetByEmployeeIdAsync(long employeeId) =>
+        await _context.AttendanceAdjustments
+            .Include(a => a.Attendance)
+            .Include(a => a.Requester)
+            .Include(a => a.Approver)
+            .Where(a => a.RequestedBy == employeeId)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync();
+
     public async Task AddAsync(AttendanceAdjustment adjustment) =>
         await _context.AttendanceAdjustments.AddAsync(adjustment);
 

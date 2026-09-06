@@ -26,12 +26,24 @@ public class AttendanceAdjustmentService : IAttendanceAdjustmentService
         var employee = await _employeeRepository.GetByEmployeeCodeAsync(request.EmployeeCode)
             ?? throw new InvalidOperationException($"Employee code '{request.EmployeeCode}' not found.");
 
-        var record = await _attendanceRepository.GetByEmployeeAndDateAsync(employee.Id, request.AttendanceDate)
-            ?? throw new InvalidOperationException($"No attendance record found for {request.AttendanceDate}.");
+        var record = await _attendanceRepository.GetByEmployeeAndDateAsync(employee.Id, request.AttendanceDate);
+        if (record is null)
+        {
+            // Nhân viên quên chấm công cả ngày đó (không check-in lẫn check-out) nên chưa có record nào —
+            // tạo 1 record rỗng để đơn điều chỉnh có chỗ áp dụng vào khi được duyệt.
+            record = new AttendanceRecord
+            {
+                EmployeeId = employee.Id,
+                AttendanceDate = request.AttendanceDate,
+                Status = AttendanceStatus.Absent,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _attendanceRepository.AddAsync(record);
+        }
 
         var adjustment = new AttendanceAdjustment
         {
-            AttendanceId = record.Id,
+            Attendance = record, // dùng navigation thay vì AttendanceId vì record có thể chưa có Id (mới tạo, chưa SaveChanges)
             RequestedBy = employee.Id,
             Reason = request.Reason,
             OldCheckInTime = record.CheckInTime,
@@ -52,6 +64,16 @@ public class AttendanceAdjustmentService : IAttendanceAdjustmentService
     {
         var adjustments = await _adjustmentRepository.GetPendingAsync();
         return adjustments.Select(a => ToDto(a, a.Attendance.AttendanceDate, a.Requester.EmployeeCode, $"{a.Requester.FirstName} {a.Requester.LastName}"));
+    }
+
+    public async Task<IEnumerable<AttendanceAdjustmentDto>> GetByEmployeeAsync(string employeeCode)
+    {
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
+
+        var adjustments = await _adjustmentRepository.GetByEmployeeIdAsync(employee.Id);
+        return adjustments.Select(a => ToDto(a, a.Attendance.AttendanceDate, employee.EmployeeCode,
+            $"{employee.FirstName} {employee.LastName}", a.Approver));
     }
 
     public async Task<AttendanceAdjustmentDto> ApproveAsync(long adjustmentId, string approverEmployeeCode)
@@ -87,6 +109,13 @@ public class AttendanceAdjustmentService : IAttendanceAdjustmentService
         {
             adjustment.Attendance.WorkingHours =
                 (decimal)(adjustment.Attendance.CheckOutTime.Value - adjustment.Attendance.CheckInTime.Value).TotalHours;
+
+            // Record được tạo rỗng lúc submit (nhân viên quên chấm công cả ngày) mặc định Status = Absent;
+            // giờ đã có đủ giờ vào/ra thật thì đổi lại thành Present cho đúng.
+            if (adjustment.Attendance.Status == AttendanceStatus.Absent)
+            {
+                adjustment.Attendance.Status = AttendanceStatus.Present;
+            }
         }
 
         adjustment.Attendance.UpdatedAt = DateTime.UtcNow;

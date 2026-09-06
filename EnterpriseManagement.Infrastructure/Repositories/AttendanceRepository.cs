@@ -29,6 +29,13 @@ public class AttendanceRepository : IAttendanceRepository
             .Where(a => a.EmployeeId == employeeId && a.AttendanceDate >= startDate && a.AttendanceDate <= endDate)
             .ToListAsync();
 
+    public async Task<IEnumerable<AttendanceRecord>> GetByDepartmentAndPeriodAsync(long departmentId, DateOnly startDate, DateOnly endDate) =>
+        await _context.AttendanceRecords
+            .Include(a => a.Employee)
+            .Where(a => a.Employee.DepartmentId == departmentId && a.AttendanceDate >= startDate && a.AttendanceDate <= endDate)
+            .OrderBy(a => a.AttendanceDate)
+            .ToListAsync();
+
     public async Task AddAsync(AttendanceRecord record) =>
         await _context.AttendanceRecords.AddAsync(record);
 
