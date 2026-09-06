@@ -8,4 +8,6 @@ public interface IEmployeeService
     Task<EmployeeDto?> GetByCodeAsync(string employeeCode);
     Task<EmployeeDto> CreateAsync(CreateEmployeeRequest request);
     Task<IEnumerable<EmployeeDto>> GetTeamAsync(string managerEmployeeCode);
+    Task<EmployeeDto> UpdateAsync(string employeeCode, UpdateEmployeeRequest request);
+    Task<EmployeeDto> SetActiveAsync(string employeeCode, bool isActive);
 }

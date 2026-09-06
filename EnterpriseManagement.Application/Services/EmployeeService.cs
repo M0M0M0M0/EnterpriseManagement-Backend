@@ -9,10 +9,17 @@ namespace EnterpriseManagement.Application.Services;
 public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _employeeRepository;
+    private readonly IDepartmentRepository _departmentRepository;
+    private readonly IPositionRepository _positionRepository;
 
-    public EmployeeService(IEmployeeRepository employeeRepository)
+    public EmployeeService(
+        IEmployeeRepository employeeRepository,
+        IDepartmentRepository departmentRepository,
+        IPositionRepository positionRepository)
     {
         _employeeRepository = employeeRepository;
+        _departmentRepository = departmentRepository;
+        _positionRepository = positionRepository;
     }
 
     public async Task<IEnumerable<EmployeeDto>> GetAllAsync()
@@ -29,14 +36,25 @@ public class EmployeeService : IEmployeeService
 
     public async Task<EmployeeDto> CreateAsync(CreateEmployeeRequest request)
     {
+        var department = await _departmentRepository.GetByCodeAsync(request.DepartmentCode)
+            ?? throw new InvalidOperationException($"Department code '{request.DepartmentCode}' not found.");
+        var position = await _positionRepository.GetByCodeAsync(request.PositionCode)
+            ?? throw new InvalidOperationException($"Position code '{request.PositionCode}' not found.");
+        var manager = await ResolveManagerAsync(request.ManagerCode);
+
         var employee = new Employee
         {
             EmployeeCode = await GenerateUniqueEmployeeCodeAsync(),
             FirstName = request.FirstName,
             LastName = request.LastName,
-            DepartmentId = request.DepartmentId,
-            PositionId = request.PositionId,
-            ManagerId = request.ManagerId,
+            Email = request.Email,
+            Phone = request.Phone,
+            Address = request.Address,
+            DateOfBirth = request.DateOfBirth,
+            Gender = ParseGender(request.Gender),
+            DepartmentId = department.Id,
+            PositionId = position.Id,
+            ManagerId = manager?.Id,
             HireDate = request.HireDate,
             EmploymentStatus = EmploymentStatus.Probation,
             CreatedAt = DateTime.UtcNow
@@ -58,6 +76,53 @@ public class EmployeeService : IEmployeeService
         return team.Select(ToDto);
     }
 
+    public async Task<EmployeeDto> UpdateAsync(string employeeCode, UpdateEmployeeRequest request)
+    {
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
+        var department = await _departmentRepository.GetByCodeAsync(request.DepartmentCode)
+            ?? throw new InvalidOperationException($"Department code '{request.DepartmentCode}' not found.");
+        var position = await _positionRepository.GetByCodeAsync(request.PositionCode)
+            ?? throw new InvalidOperationException($"Position code '{request.PositionCode}' not found.");
+        var manager = await ResolveManagerAsync(request.ManagerCode);
+
+        employee.Phone = request.Phone;
+        employee.Address = request.Address;
+        employee.DepartmentId = department.Id;
+        employee.PositionId = position.Id;
+        employee.ManagerId = manager?.Id;
+        employee.UpdatedAt = DateTime.UtcNow;
+
+        await _employeeRepository.SaveChangesAsync();
+
+        var updated = await _employeeRepository.GetByIdAsync(employee.Id);
+        return ToDto(updated!);
+    }
+
+    private async Task<Employee?> ResolveManagerAsync(string? managerCode)
+    {
+        if (string.IsNullOrWhiteSpace(managerCode)) return null;
+        return await _employeeRepository.GetByEmployeeCodeAsync(managerCode)
+            ?? throw new InvalidOperationException($"Employee code '{managerCode}' not found.");
+    }
+
+    public async Task<EmployeeDto> SetActiveAsync(string employeeCode, bool isActive)
+    {
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
+
+        employee.EmploymentStatus = isActive ? EmploymentStatus.Active : EmploymentStatus.Terminated;
+        employee.UpdatedAt = DateTime.UtcNow;
+
+        await _employeeRepository.SaveChangesAsync();
+
+        var updated = await _employeeRepository.GetByIdAsync(employee.Id);
+        return ToDto(updated!);
+    }
+
+    private static Gender? ParseGender(string? gender) =>
+        Enum.TryParse<Gender>(gender, ignoreCase: true, out var parsed) ? parsed : null;
+
     private async Task<string> GenerateUniqueEmployeeCodeAsync()
     {
         string code;
@@ -74,8 +139,16 @@ public class EmployeeService : IEmployeeService
     {
         EmployeeCode = employee.EmployeeCode,
         FullName = $"{employee.FirstName} {employee.LastName}",
+        Email = employee.Email,
+        Phone = employee.Phone,
+        Address = employee.Address,
+        DateOfBirth = employee.DateOfBirth,
+        Gender = employee.Gender?.ToString(),
+        DepartmentCode = employee.Department.DepartmentCode,
         DepartmentName = employee.Department.DepartmentName,
+        PositionCode = employee.Position.PositionCode,
         PositionName = employee.Position.PositionName,
+        ManagerCode = employee.Manager?.EmployeeCode,
         EmploymentStatus = employee.EmploymentStatus.ToString(),
         HireDate = employee.HireDate
     };

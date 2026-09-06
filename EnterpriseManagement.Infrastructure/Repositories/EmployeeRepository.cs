@@ -18,24 +18,28 @@ public class EmployeeRepository : IEmployeeRepository
         await _context.Employees
             .Include(e => e.Department)
             .Include(e => e.Position)
+            .Include(e => e.Manager)
             .FirstOrDefaultAsync(e => e.Id == id);
 
     public async Task<IEnumerable<Employee>> GetAllAsync() =>
         await _context.Employees
             .Include(e => e.Department)
             .Include(e => e.Position)
+            .Include(e => e.Manager)
             .ToListAsync();
 
     public async Task<Employee?> GetByEmployeeCodeAsync(string employeeCode) =>
         await _context.Employees
             .Include(e => e.Department)
             .Include(e => e.Position)
+            .Include(e => e.Manager)
             .FirstOrDefaultAsync(e => e.EmployeeCode == employeeCode);
 
     public async Task<IEnumerable<Employee>> GetByManagerIdAsync(long managerId) =>
         await _context.Employees
             .Include(e => e.Department)
             .Include(e => e.Position)
+            .Include(e => e.Manager)
             .Where(e => e.ManagerId == managerId)
             .ToListAsync();
 

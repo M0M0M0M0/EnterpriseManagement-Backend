@@ -54,4 +54,34 @@ public class EmployeesController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpPut("{employeeCode}")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<ActionResult<EmployeeDto>> Update(string employeeCode, UpdateEmployeeRequest request)
+    {
+        try
+        {
+            var updated = await _employeeService.UpdateAsync(employeeCode, request);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{employeeCode}/active")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<ActionResult<EmployeeDto>> SetActive(string employeeCode, SetActiveRequest request)
+    {
+        try
+        {
+            var updated = await _employeeService.SetActiveAsync(employeeCode, request.IsActive);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }
