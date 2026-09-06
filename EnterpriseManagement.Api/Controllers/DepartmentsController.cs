@@ -42,4 +42,32 @@ public class DepartmentsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPut("{departmentCode}")]
+    public async Task<ActionResult<DepartmentDto>> Update(string departmentCode, UpdateDepartmentRequest request)
+    {
+        try
+        {
+            var updated = await _departmentService.UpdateAsync(departmentCode, request);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{departmentCode}/active")]
+    public async Task<ActionResult<DepartmentDto>> SetActive(string departmentCode, SetActiveRequest request)
+    {
+        try
+        {
+            var updated = await _departmentService.SetActiveAsync(departmentCode, request.IsActive);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }

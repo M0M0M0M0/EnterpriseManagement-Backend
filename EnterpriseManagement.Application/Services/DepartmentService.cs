@@ -50,6 +50,35 @@ public class DepartmentService : IDepartmentService
         return ToDto(created!);
     }
 
+    public async Task<DepartmentDto> UpdateAsync(string departmentCode, UpdateDepartmentRequest request)
+    {
+        var department = await _departmentRepository.GetByCodeAsync(departmentCode)
+            ?? throw new InvalidOperationException($"Department code '{departmentCode}' not found.");
+
+        department.DepartmentName = request.DepartmentName;
+        department.ManagerId = request.ManagerId;
+        department.Description = request.Description;
+        department.UpdatedAt = DateTime.UtcNow;
+
+        await _departmentRepository.SaveChangesAsync();
+
+        var updated = await _departmentRepository.GetByCodeAsync(departmentCode);
+        return ToDto(updated!);
+    }
+
+    public async Task<DepartmentDto> SetActiveAsync(string departmentCode, bool isActive)
+    {
+        var department = await _departmentRepository.GetByCodeAsync(departmentCode)
+            ?? throw new InvalidOperationException($"Department code '{departmentCode}' not found.");
+
+        department.IsActive = isActive;
+        department.UpdatedAt = DateTime.UtcNow;
+
+        await _departmentRepository.SaveChangesAsync();
+
+        return ToDto(department);
+    }
+
     private static DepartmentDto ToDto(Department department) => new()
     {
         DepartmentCode = department.DepartmentCode,
