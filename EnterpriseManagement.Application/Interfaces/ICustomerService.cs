@@ -6,5 +6,5 @@ public interface ICustomerService
 {
     Task<IEnumerable<CustomerDto>> GetAllAsync();
     Task<CustomerDto?> GetByCodeAsync(string customerCode);
-    Task<CustomerDto> CreateAsync(CreateCustomerRequest request);
+    Task<CustomerDto> CreateAsync(CreateCustomerRequest request, string employeeCode);
 }

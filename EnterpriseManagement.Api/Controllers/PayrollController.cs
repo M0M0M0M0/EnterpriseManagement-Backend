@@ -1,11 +1,13 @@
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/payroll")]
+[Authorize(Roles = "ADMIN")]
 public class PayrollController : ControllerBase
 {
     private readonly IPayrollCalculationService _payrollCalculationService;

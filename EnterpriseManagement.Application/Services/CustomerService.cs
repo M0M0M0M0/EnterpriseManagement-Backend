@@ -29,10 +29,10 @@ public class CustomerService : ICustomerService
         return customer is null ? null : ToDto(customer);
     }
 
-    public async Task<CustomerDto> CreateAsync(CreateCustomerRequest request)
+    public async Task<CustomerDto> CreateAsync(CreateCustomerRequest request, string employeeCode)
     {
-        var employee = await _employeeRepository.GetByEmployeeCodeAsync(request.EmployeeCode)
-            ?? throw new InvalidOperationException($"Employee code '{request.EmployeeCode}' not found.");
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
 
         var customer = new Customer
         {

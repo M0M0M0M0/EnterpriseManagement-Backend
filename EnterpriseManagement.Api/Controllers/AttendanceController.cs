@@ -1,28 +1,36 @@
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/attendance")]
+[Authorize]
 public class AttendanceController : ControllerBase
 {
     private readonly IAttendanceService _attendanceService;
     private readonly IAttendanceAdjustmentService _attendanceAdjustmentService;
+    private readonly ICurrentUserService _currentUserService;
 
-    public AttendanceController(IAttendanceService attendanceService, IAttendanceAdjustmentService attendanceAdjustmentService)
+    public AttendanceController(
+        IAttendanceService attendanceService,
+        IAttendanceAdjustmentService attendanceAdjustmentService,
+        ICurrentUserService currentUserService)
     {
         _attendanceService = attendanceService;
         _attendanceAdjustmentService = attendanceAdjustmentService;
+        _currentUserService = currentUserService;
     }
 
     [HttpPost("punch")]
-    public async Task<ActionResult<AttendanceRecordDto>> Punch(PunchRequest request)
+    [Authorize(Roles = "EMPLOYEE")]
+    public async Task<ActionResult<AttendanceRecordDto>> Punch()
     {
         try
         {
-            var result = await _attendanceService.PunchAsync(request);
+            var result = await _attendanceService.PunchAsync(_currentUserService.EmployeeCode!);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -34,6 +42,11 @@ public class AttendanceController : ControllerBase
     [HttpGet("{employeeCode}/history")]
     public async Task<ActionResult<IEnumerable<AttendanceRecordDto>>> GetHistory(string employeeCode)
     {
+        if (_currentUserService.IsInRole("EMPLOYEE") && employeeCode != _currentUserService.EmployeeCode)
+        {
+            return Forbid();
+        }
+
         try
         {
             var history = await _attendanceService.GetHistoryAsync(employeeCode);
@@ -46,6 +59,7 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpGet("department/{departmentCode}")]
+    [Authorize(Roles = "MANAGER,ADMIN")]
     public async Task<ActionResult<IEnumerable<AttendanceRecordDto>>> GetByDepartment(
         string departmentCode, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
     {
@@ -61,11 +75,12 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpPost("adjustments")]
+    [Authorize(Roles = "EMPLOYEE")]
     public async Task<ActionResult<AttendanceAdjustmentDto>> SubmitAdjustment(SubmitAdjustmentRequest request)
     {
         try
         {
-            var result = await _attendanceAdjustmentService.SubmitAsync(request);
+            var result = await _attendanceAdjustmentService.SubmitAsync(request, _currentUserService.EmployeeCode!);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -75,20 +90,15 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpGet("adjustments/mine")]
-    public async Task<ActionResult<IEnumerable<AttendanceAdjustmentDto>>> GetMyAdjustments([FromQuery] string employeeCode)
+    [Authorize(Roles = "EMPLOYEE")]
+    public async Task<ActionResult<IEnumerable<AttendanceAdjustmentDto>>> GetMyAdjustments()
     {
-        try
-        {
-            var adjustments = await _attendanceAdjustmentService.GetByEmployeeAsync(employeeCode);
-            return Ok(adjustments);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var adjustments = await _attendanceAdjustmentService.GetByEmployeeAsync(_currentUserService.EmployeeCode!);
+        return Ok(adjustments);
     }
 
     [HttpGet("adjustments/pending")]
+    [Authorize(Roles = "MANAGER,ADMIN")]
     public async Task<ActionResult<IEnumerable<AttendanceAdjustmentDto>>> GetPendingAdjustments()
     {
         var pending = await _attendanceAdjustmentService.GetPendingAsync();
@@ -96,11 +106,12 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpPut("adjustments/{id}/approve")]
-    public async Task<ActionResult<AttendanceAdjustmentDto>> ApproveAdjustment(long id, ApprovalRequest request)
+    [Authorize(Roles = "MANAGER,ADMIN")]
+    public async Task<ActionResult<AttendanceAdjustmentDto>> ApproveAdjustment(long id)
     {
         try
         {
-            var result = await _attendanceAdjustmentService.ApproveAsync(id, request.ApproverEmployeeCode);
+            var result = await _attendanceAdjustmentService.ApproveAsync(id, _currentUserService.EmployeeCode!);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -110,11 +121,12 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpPut("adjustments/{id}/reject")]
-    public async Task<ActionResult<AttendanceAdjustmentDto>> RejectAdjustment(long id, ApprovalRequest request)
+    [Authorize(Roles = "MANAGER,ADMIN")]
+    public async Task<ActionResult<AttendanceAdjustmentDto>> RejectAdjustment(long id)
     {
         try
         {
-            var result = await _attendanceAdjustmentService.RejectAsync(id, request.ApproverEmployeeCode);
+            var result = await _attendanceAdjustmentService.RejectAsync(id, _currentUserService.EmployeeCode!);
             return Ok(result);
         }
         catch (InvalidOperationException ex)

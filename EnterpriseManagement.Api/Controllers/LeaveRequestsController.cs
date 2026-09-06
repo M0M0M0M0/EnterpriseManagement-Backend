@@ -1,26 +1,31 @@
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/leave-requests")]
+[Authorize]
 public class LeaveRequestsController : ControllerBase
 {
     private readonly ILeaveRequestService _leaveRequestService;
+    private readonly ICurrentUserService _currentUserService;
 
-    public LeaveRequestsController(ILeaveRequestService leaveRequestService)
+    public LeaveRequestsController(ILeaveRequestService leaveRequestService, ICurrentUserService currentUserService)
     {
         _leaveRequestService = leaveRequestService;
+        _currentUserService = currentUserService;
     }
 
     [HttpPost]
+    [Authorize(Roles = "EMPLOYEE")]
     public async Task<ActionResult<LeaveRequestDto>> Submit(SubmitLeaveRequest request)
     {
         try
         {
-            var result = await _leaveRequestService.SubmitAsync(request);
+            var result = await _leaveRequestService.SubmitAsync(request, _currentUserService.EmployeeCode!);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -30,25 +35,20 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpGet("mine")]
-    public async Task<ActionResult<IEnumerable<LeaveRequestDto>>> GetMine([FromQuery] string employeeCode)
+    [Authorize(Roles = "EMPLOYEE")]
+    public async Task<ActionResult<IEnumerable<LeaveRequestDto>>> GetMine()
     {
-        try
-        {
-            var requests = await _leaveRequestService.GetByEmployeeAsync(employeeCode);
-            return Ok(requests);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var requests = await _leaveRequestService.GetByEmployeeAsync(_currentUserService.EmployeeCode!);
+        return Ok(requests);
     }
 
     [HttpPut("{id}/cancel")]
-    public async Task<ActionResult<LeaveRequestDto>> Cancel(long id, CancelLeaveRequest request)
+    [Authorize(Roles = "EMPLOYEE")]
+    public async Task<ActionResult<LeaveRequestDto>> Cancel(long id)
     {
         try
         {
-            var result = await _leaveRequestService.CancelAsync(id, request.EmployeeCode);
+            var result = await _leaveRequestService.CancelAsync(id, _currentUserService.EmployeeCode!);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -58,6 +58,7 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpGet("pending")]
+    [Authorize(Roles = "MANAGER,ADMIN")]
     public async Task<ActionResult<IEnumerable<LeaveRequestDto>>> GetPending()
     {
         var pending = await _leaveRequestService.GetPendingAsync();
@@ -65,6 +66,7 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpGet("history")]
+    [Authorize(Roles = "MANAGER,ADMIN")]
     public async Task<ActionResult<IEnumerable<LeaveRequestDto>>> GetHistory()
     {
         var history = await _leaveRequestService.GetHistoryAsync();
@@ -72,11 +74,12 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpPut("{id}/approve")]
-    public async Task<ActionResult<LeaveRequestDto>> Approve(long id, ApprovalRequest request)
+    [Authorize(Roles = "MANAGER,ADMIN")]
+    public async Task<ActionResult<LeaveRequestDto>> Approve(long id)
     {
         try
         {
-            var result = await _leaveRequestService.ApproveAsync(id, request.ApproverEmployeeCode);
+            var result = await _leaveRequestService.ApproveAsync(id, _currentUserService.EmployeeCode!);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -86,11 +89,12 @@ public class LeaveRequestsController : ControllerBase
     }
 
     [HttpPut("{id}/reject")]
+    [Authorize(Roles = "MANAGER,ADMIN")]
     public async Task<ActionResult<LeaveRequestDto>> Reject(long id, RejectLeaveRequest request)
     {
         try
         {
-            var result = await _leaveRequestService.RejectAsync(id, request.ApproverEmployeeCode, request.RejectionReason);
+            var result = await _leaveRequestService.RejectAsync(id, _currentUserService.EmployeeCode!, request.RejectionReason);
             return Ok(result);
         }
         catch (InvalidOperationException ex)

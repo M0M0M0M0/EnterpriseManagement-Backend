@@ -1,11 +1,13 @@
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class EmployeesController : ControllerBase
 {
     private readonly IEmployeeService _employeeService;
@@ -16,6 +18,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetAll()
     {
         var employees = await _employeeService.GetAllAsync();
@@ -30,6 +33,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeRequest request)
     {
         var created = await _employeeService.CreateAsync(request);
@@ -37,6 +41,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet("team/{managerEmployeeCode}")]
+    [Authorize(Roles = "MANAGER,ADMIN")]
     public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetTeam(string managerEmployeeCode)
     {
         try

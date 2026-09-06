@@ -22,10 +22,10 @@ public class AttendanceService : IAttendanceService
         _departmentRepository = departmentRepository;
     }
 
-    public async Task<AttendanceRecordDto> PunchAsync(PunchRequest request)
+    public async Task<AttendanceRecordDto> PunchAsync(string employeeCode)
     {
-        var employee = await _employeeRepository.GetByEmployeeCodeAsync(request.EmployeeCode)
-            ?? throw new InvalidOperationException($"Employee code '{request.EmployeeCode}' not found.");
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var record = await _attendanceRepository.GetByEmployeeAndDateAsync(employee.Id, today);

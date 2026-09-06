@@ -21,10 +21,10 @@ public class AttendanceAdjustmentService : IAttendanceAdjustmentService
         _employeeRepository = employeeRepository;
     }
 
-    public async Task<AttendanceAdjustmentDto> SubmitAsync(SubmitAdjustmentRequest request)
+    public async Task<AttendanceAdjustmentDto> SubmitAsync(SubmitAdjustmentRequest request, string employeeCode)
     {
-        var employee = await _employeeRepository.GetByEmployeeCodeAsync(request.EmployeeCode)
-            ?? throw new InvalidOperationException($"Employee code '{request.EmployeeCode}' not found.");
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
 
         var record = await _attendanceRepository.GetByEmployeeAndDateAsync(employee.Id, request.AttendanceDate);
         if (record is null)

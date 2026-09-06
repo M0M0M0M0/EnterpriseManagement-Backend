@@ -25,10 +25,10 @@ public class LeaveRequestService : ILeaveRequestService
         _employeeRepository = employeeRepository;
     }
 
-    public async Task<LeaveRequestDto> SubmitAsync(SubmitLeaveRequest request)
+    public async Task<LeaveRequestDto> SubmitAsync(SubmitLeaveRequest request, string employeeCode)
     {
-        var employee = await _employeeRepository.GetByEmployeeCodeAsync(request.EmployeeCode)
-            ?? throw new InvalidOperationException($"Employee code '{request.EmployeeCode}' not found.");
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
 
         var leaveType = await _leaveTypeRepository.GetByCodeAsync(request.LeaveTypeCode)
             ?? throw new InvalidOperationException($"Leave type code '{request.LeaveTypeCode}' not found.");

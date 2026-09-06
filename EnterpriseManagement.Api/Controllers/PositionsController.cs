@@ -1,11 +1,13 @@
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PositionsController : ControllerBase
 {
     private readonly IPositionService _positionService;
@@ -30,6 +32,7 @@ public class PositionsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<PositionDto>> Create(CreatePositionRequest request)
     {
         try
@@ -44,6 +47,7 @@ public class PositionsController : ControllerBase
     }
 
     [HttpPut("{positionCode}")]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<PositionDto>> Update(string positionCode, UpdatePositionRequest request)
     {
         try
@@ -58,6 +62,7 @@ public class PositionsController : ControllerBase
     }
 
     [HttpPut("{positionCode}/active")]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<PositionDto>> SetActive(string positionCode, SetActiveRequest request)
     {
         try
@@ -72,6 +77,7 @@ public class PositionsController : ControllerBase
     }
 
     [HttpPut("{positionCode}/salary")]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<PositionDto>> SetStandardSalary(string positionCode, SetStandardSalaryRequest request)
     {
         try

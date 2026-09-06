@@ -1,11 +1,13 @@
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnterpriseManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/leave-types")]
+[Authorize]
 public class LeaveTypesController : ControllerBase
 {
     private readonly ILeaveTypeService _leaveTypeService;
@@ -30,6 +32,7 @@ public class LeaveTypesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<LeaveTypeDto>> Create(CreateLeaveTypeRequest request)
     {
         try

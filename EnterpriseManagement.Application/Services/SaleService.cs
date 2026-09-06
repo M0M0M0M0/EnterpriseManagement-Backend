@@ -19,10 +19,10 @@ public class SaleService : ISaleService
         _employeeRepository = employeeRepository;
     }
 
-    public async Task<SaleDto> SubmitAsync(SubmitSaleRequest request)
+    public async Task<SaleDto> SubmitAsync(SubmitSaleRequest request, string employeeCode)
     {
-        var employee = await _employeeRepository.GetByEmployeeCodeAsync(request.EmployeeCode)
-            ?? throw new InvalidOperationException($"Employee code '{request.EmployeeCode}' not found.");
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
 
         var customer = await _customerRepository.GetByCodeAsync(request.CustomerCode)
             ?? throw new InvalidOperationException($"Customer code '{request.CustomerCode}' not found.");
@@ -55,12 +55,12 @@ public class SaleService : ISaleService
         return sales.Select(ToDto);
     }
 
-    public async Task<SaleDto> UpdateAsync(long saleId, UpdateSaleRequest request)
+    public async Task<SaleDto> UpdateAsync(long saleId, string employeeCode, UpdateSaleRequest request)
     {
         var sale = await _saleRepository.GetByIdAsync(saleId)
             ?? throw new InvalidOperationException($"Sale {saleId} not found.");
 
-        if (sale.Employee.EmployeeCode != request.EmployeeCode)
+        if (sale.Employee.EmployeeCode != employeeCode)
         {
             throw new InvalidOperationException("Only the employee who submitted this sale can edit it.");
         }

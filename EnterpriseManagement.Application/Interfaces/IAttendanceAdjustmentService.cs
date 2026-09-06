@@ -4,7 +4,7 @@ namespace EnterpriseManagement.Application.Interfaces;
 
 public interface IAttendanceAdjustmentService
 {
-    Task<AttendanceAdjustmentDto> SubmitAsync(SubmitAdjustmentRequest request);
+    Task<AttendanceAdjustmentDto> SubmitAsync(SubmitAdjustmentRequest request, string employeeCode);
     Task<IEnumerable<AttendanceAdjustmentDto>> GetPendingAsync();
     Task<IEnumerable<AttendanceAdjustmentDto>> GetByEmployeeAsync(string employeeCode);
     Task<AttendanceAdjustmentDto> ApproveAsync(long adjustmentId, string approverEmployeeCode);
