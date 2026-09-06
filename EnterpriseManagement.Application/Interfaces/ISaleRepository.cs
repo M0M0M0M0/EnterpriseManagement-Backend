@@ -8,6 +8,7 @@ public interface ISaleRepository
     Task<IEnumerable<Sale>> GetPendingAsync();
     Task<IEnumerable<Sale>> GetAllAsync();
     Task<Sale?> GetByCodeAsync(string saleCode);
+    Task<IEnumerable<Sale>> GetByEmployeeIdAsync(long employeeId);
     Task AddAsync(Sale sale);
     Task<int> SaveChangesAsync();
 }

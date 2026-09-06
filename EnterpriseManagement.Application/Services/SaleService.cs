@@ -46,6 +46,39 @@ public class SaleService : ISaleService
         return ToDto(created!);
     }
 
+    public async Task<IEnumerable<SaleDto>> GetByEmployeeAsync(string employeeCode)
+    {
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
+
+        var sales = await _saleRepository.GetByEmployeeIdAsync(employee.Id);
+        return sales.Select(ToDto);
+    }
+
+    public async Task<SaleDto> UpdateAsync(long saleId, UpdateSaleRequest request)
+    {
+        var sale = await _saleRepository.GetByIdAsync(saleId)
+            ?? throw new InvalidOperationException($"Sale {saleId} not found.");
+
+        if (sale.Employee.EmployeeCode != request.EmployeeCode)
+        {
+            throw new InvalidOperationException("Only the employee who submitted this sale can edit it.");
+        }
+
+        if (sale.Status != SaleStatus.Pending)
+        {
+            throw new InvalidOperationException("Only pending sales can be edited.");
+        }
+
+        sale.Amount = request.Amount;
+        sale.Note = request.Note;
+        sale.UpdatedAt = DateTime.UtcNow;
+
+        await _saleRepository.SaveChangesAsync();
+
+        return ToDto(sale);
+    }
+
     public async Task<IEnumerable<SaleDto>> GetPendingAsync()
     {
         var sales = await _saleRepository.GetPendingAsync();

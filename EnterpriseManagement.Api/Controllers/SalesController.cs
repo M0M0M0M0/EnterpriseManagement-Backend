@@ -29,6 +29,34 @@ public class SalesController : ControllerBase
         }
     }
 
+    [HttpGet("mine")]
+    public async Task<ActionResult<IEnumerable<SaleDto>>> GetMine([FromQuery] string employeeCode)
+    {
+        try
+        {
+            var sales = await _saleService.GetByEmployeeAsync(employeeCode);
+            return Ok(sales);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<SaleDto>> Update(long id, UpdateSaleRequest request)
+    {
+        try
+        {
+            var result = await _saleService.UpdateAsync(id, request);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("pending")]
     public async Task<ActionResult<IEnumerable<SaleDto>>> GetPending()
     {

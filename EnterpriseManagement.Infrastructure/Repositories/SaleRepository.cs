@@ -44,6 +44,15 @@ public class SaleRepository : ISaleRepository
             .Include(s => s.Approver)
             .FirstOrDefaultAsync(s => s.SaleCode == saleCode);
 
+    public async Task<IEnumerable<Sale>> GetByEmployeeIdAsync(long employeeId) =>
+        await _context.Sales
+            .Include(s => s.Customer)
+            .Include(s => s.Employee)
+            .Include(s => s.Approver)
+            .Where(s => s.EmployeeId == employeeId)
+            .OrderByDescending(s => s.OrderDate)
+            .ToListAsync();
+
     public async Task AddAsync(Sale sale) =>
         await _context.Sales.AddAsync(sale);
 
