@@ -8,6 +8,7 @@ public interface ILeaveRequestRepository
         long employeeId, DateOnly periodStart, DateOnly periodEnd);
 
     Task<LeaveRequest?> GetByIdAsync(long id);
+    Task<IEnumerable<LeaveRequest>> GetByEmployeeIdAsync(long employeeId);
     Task<IEnumerable<LeaveRequest>> GetPendingAsync();
     Task<IEnumerable<LeaveRequest>> GetAllAsync();
     Task AddAsync(LeaveRequest leaveRequest);

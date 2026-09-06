@@ -63,6 +63,38 @@ public class LeaveRequestService : ILeaveRequestService
         return ToDto(created!);
     }
 
+    public async Task<IEnumerable<LeaveRequestDto>> GetByEmployeeAsync(string employeeCode)
+    {
+        var employee = await _employeeRepository.GetByEmployeeCodeAsync(employeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{employeeCode}' not found.");
+
+        var requests = await _leaveRequestRepository.GetByEmployeeIdAsync(employee.Id);
+        return requests.Select(ToDto);
+    }
+
+    public async Task<LeaveRequestDto> CancelAsync(long leaveRequestId, string employeeCode)
+    {
+        var leaveRequest = await _leaveRequestRepository.GetByIdAsync(leaveRequestId)
+            ?? throw new InvalidOperationException($"Leave request {leaveRequestId} not found.");
+
+        if (leaveRequest.Employee.EmployeeCode != employeeCode)
+        {
+            throw new InvalidOperationException("Only the employee who submitted this leave request can cancel it.");
+        }
+
+        if (leaveRequest.Status != LeaveRequestStatus.Pending)
+        {
+            throw new InvalidOperationException("Only pending leave requests can be cancelled.");
+        }
+
+        leaveRequest.Status = LeaveRequestStatus.Cancelled;
+        leaveRequest.UpdatedAt = DateTime.UtcNow;
+
+        await _leaveRequestRepository.SaveChangesAsync();
+
+        return ToDto(leaveRequest);
+    }
+
     public async Task<IEnumerable<LeaveRequestDto>> GetPendingAsync()
     {
         var requests = await _leaveRequestRepository.GetPendingAsync();

@@ -29,6 +29,34 @@ public class LeaveRequestsController : ControllerBase
         }
     }
 
+    [HttpGet("mine")]
+    public async Task<ActionResult<IEnumerable<LeaveRequestDto>>> GetMine([FromQuery] string employeeCode)
+    {
+        try
+        {
+            var requests = await _leaveRequestService.GetByEmployeeAsync(employeeCode);
+            return Ok(requests);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{id}/cancel")]
+    public async Task<ActionResult<LeaveRequestDto>> Cancel(long id, CancelLeaveRequest request)
+    {
+        try
+        {
+            var result = await _leaveRequestService.CancelAsync(id, request.EmployeeCode);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("pending")]
     public async Task<ActionResult<IEnumerable<LeaveRequestDto>>> GetPending()
     {

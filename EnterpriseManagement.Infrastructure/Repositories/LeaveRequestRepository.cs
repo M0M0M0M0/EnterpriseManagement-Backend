@@ -39,6 +39,15 @@ public class LeaveRequestRepository : ILeaveRequestRepository
             .Where(l => l.Status == LeaveRequestStatus.Pending)
             .ToListAsync();
 
+    public async Task<IEnumerable<LeaveRequest>> GetByEmployeeIdAsync(long employeeId) =>
+        await _context.LeaveRequests
+            .Include(l => l.LeaveType)
+            .Include(l => l.Employee)
+            .Include(l => l.Approver)
+            .Where(l => l.EmployeeId == employeeId)
+            .OrderByDescending(l => l.CreatedAt)
+            .ToListAsync();
+
     public async Task<IEnumerable<LeaveRequest>> GetAllAsync() =>
         await _context.LeaveRequests
             .Include(l => l.LeaveType)

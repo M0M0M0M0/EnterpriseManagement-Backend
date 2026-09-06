@@ -5,6 +5,8 @@ namespace EnterpriseManagement.Application.Interfaces;
 public interface ILeaveRequestService
 {
     Task<LeaveRequestDto> SubmitAsync(SubmitLeaveRequest request);
+    Task<IEnumerable<LeaveRequestDto>> GetByEmployeeAsync(string employeeCode);
+    Task<LeaveRequestDto> CancelAsync(long leaveRequestId, string employeeCode);
     Task<IEnumerable<LeaveRequestDto>> GetPendingAsync();
     Task<IEnumerable<LeaveRequestDto>> GetHistoryAsync();
     Task<LeaveRequestDto> ApproveAsync(long leaveRequestId, string approverEmployeeCode);
