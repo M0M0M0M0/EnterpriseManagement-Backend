@@ -49,6 +49,15 @@ public class EmployeeService : IEmployeeService
         return ToDto(created!);
     }
 
+    public async Task<IEnumerable<EmployeeDto>> GetTeamAsync(string managerEmployeeCode)
+    {
+        var manager = await _employeeRepository.GetByEmployeeCodeAsync(managerEmployeeCode)
+            ?? throw new InvalidOperationException($"Employee code '{managerEmployeeCode}' not found.");
+
+        var team = await _employeeRepository.GetByManagerIdAsync(manager.Id);
+        return team.Select(ToDto);
+    }
+
     private async Task<string> GenerateUniqueEmployeeCodeAsync()
     {
         string code;

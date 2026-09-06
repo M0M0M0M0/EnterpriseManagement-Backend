@@ -7,4 +7,5 @@ public interface IEmployeeService
     Task<IEnumerable<EmployeeDto>> GetAllAsync();
     Task<EmployeeDto?> GetByCodeAsync(string employeeCode);
     Task<EmployeeDto> CreateAsync(CreateEmployeeRequest request);
+    Task<IEnumerable<EmployeeDto>> GetTeamAsync(string managerEmployeeCode);
 }

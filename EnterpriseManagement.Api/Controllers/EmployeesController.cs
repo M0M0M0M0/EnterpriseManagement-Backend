@@ -35,4 +35,18 @@ public class EmployeesController : ControllerBase
         var created = await _employeeService.CreateAsync(request);
         return CreatedAtAction(nameof(GetByCode), new { employeeCode = created.EmployeeCode }, created);
     }
+
+    [HttpGet("team/{managerEmployeeCode}")]
+    public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetTeam(string managerEmployeeCode)
+    {
+        try
+        {
+            var team = await _employeeService.GetTeamAsync(managerEmployeeCode);
+            return Ok(team);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }
