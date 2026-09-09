@@ -24,7 +24,7 @@ public static class DataSeeder
             {
                 Username = "admin",
                 Email = "admin@enterprise.local",
-                PasswordHash = passwordHasher.Hash("Admin@123"),
+                PasswordHash = passwordHasher.Hash("admin"),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };

@@ -1,3 +1,4 @@
+using EnterpriseManagement.Application.Common;
 using EnterpriseManagement.Application.DTOs;
 using EnterpriseManagement.Application.Interfaces;
 using EnterpriseManagement.Domain.Entities.Identity;
@@ -56,7 +57,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserDto> CreateAsync(CreateUserRequest request)
+    public async Task<CreateUserResult> CreateAsync(CreateUserRequest request)
     {
         var existing = await _userRepository.GetByUsernameAsync(request.Username);
         if (existing is not null)
@@ -75,11 +76,13 @@ public class UserService : IUserService
             employeeId = employee.Id;
         }
 
+        var generatedPassword = RandomCodeGenerator.Generate(10);
+
         var user = new User
         {
             Username = request.Username,
             Email = request.Email,
-            PasswordHash = _passwordHasher.Hash(request.Password),
+            PasswordHash = _passwordHasher.Hash(generatedPassword),
             EmployeeId = employeeId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -90,13 +93,34 @@ public class UserService : IUserService
         await _userRepository.SaveChangesAsync();
 
         var created = await _userRepository.GetByUsernameAsync(request.Username);
-        return ToDto(created!);
+        return new CreateUserResult
+        {
+            User = ToDto(created!),
+            GeneratedPassword = generatedPassword
+        };
     }
 
     public async Task<IEnumerable<UserDto>> GetAllAsync()
     {
         var users = await _userRepository.GetAllAsync();
         return users.Select(ToDto);
+    }
+
+    public async Task<CreateUserResult> ResetPasswordAsync(string username)
+    {
+        var user = await _userRepository.GetByUsernameAsync(username)
+            ?? throw new InvalidOperationException($"Username '{username}' not found.");
+
+        var generatedPassword = RandomCodeGenerator.Generate(10);
+        user.PasswordHash = _passwordHasher.Hash(generatedPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _userRepository.SaveChangesAsync();
+
+        return new CreateUserResult
+        {
+            User = ToDto(user),
+            GeneratedPassword = generatedPassword
+        };
     }
 
     public async Task<UserDto> SetActiveAsync(string username, bool isActive)

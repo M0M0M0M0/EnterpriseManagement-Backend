@@ -25,7 +25,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<UserDto>> Create(CreateUserRequest request)
+    public async Task<ActionResult<CreateUserResult>> Create(CreateUserRequest request)
     {
         try
         {
@@ -45,6 +45,20 @@ public class UsersController : ControllerBase
         {
             var updated = await _userService.SetActiveAsync(username, request.IsActive);
             return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("{username}/reset-password")]
+    public async Task<ActionResult<CreateUserResult>> ResetPassword(string username)
+    {
+        try
+        {
+            var result = await _userService.ResetPasswordAsync(username);
+            return Ok(result);
         }
         catch (InvalidOperationException ex)
         {
